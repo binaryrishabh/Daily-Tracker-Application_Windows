@@ -14,8 +14,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "electron": "^41.5.0",
-    "electron-builder": "^26.8.1",
     "electron-updater": "^6.8.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -27,11 +25,13 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.1",
     "concurrently": "^9.2.1",
+    "electron": "^41.5.0",
+    "electron-builder": "^26.8.1",
     "vite": "^8.0.10",
     "wait-on": "^9.0.5"
   },
   "build": {
-    "appId": "com.binaryrishabh.daily-tracker",
+    "appId": "com.rishabh.daily-tracker",
     "productName": "Daily Tracker",
     "directories": {
       "output": "release"
@@ -43,7 +43,8 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": null
+      "forceCodeSigning": false,
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
