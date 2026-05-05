@@ -49,7 +49,7 @@ useEffect(() => {
   }, []);
 
   
-    const { columns, monthLabels, maxHours, totalHours, totalDays, currentStreak, maxStreak, svgWidth } = useMemo(() => {
+    const { columns, monthLabels, maxHours, totalHours, totalMs, totalDays, currentStreak, maxStreak, svgWidth } = useMemo(() => {
     const sessionsMap = {};
     sessions.forEach((session) => {
       const dateStr = session.date ? session.date.split('T')[0] : null;
@@ -202,7 +202,8 @@ useEffect(() => {
       columns,
       monthLabels: monthLabelsArr,
       maxHours: maxMs / 3600000,
-      totalHours: Math.round((totalMs / 3600000) * 10) / 10,
+      totalHours: totalMs / 3600000,
+      totalMs: totalMs,
       totalDays: totalDaysCount,
       currentStreak: streakCount,
       maxStreak,
@@ -249,7 +250,7 @@ useEffect(() => {
       </div>
       <div className="contribution-stats">
         <div className="contribution-stat">
-          <span className="stat-value">{formatMs(totalHours * 3600000)}</span>
+          <span className="stat-value">{formatMs(totalMs)}</span>
           <span className="stat-label">
             Hours tracked
             <HelpTooltip text="Total productive time across all saved sessions. Does not include distraction time." />
