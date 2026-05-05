@@ -6,14 +6,14 @@
   "scripts": {
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "vite build",
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "vite build && electron-builder"
   },
   "keywords": [],
-  "author": "",
+  "author": "binaryrishabh",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "better-sqlite3": "^12.9.0",
     "electron": "^41.5.0",
     "electron-builder": "^26.8.1",
     "react": "^18.3.1",
@@ -28,5 +28,31 @@
     "concurrently": "^9.2.1",
     "vite": "^8.0.10",
     "wait-on": "^9.0.5"
+  },
+  "build": {
+    "appId": "com.binaryrishabh.daily-tracker",
+    "productName": "Daily Tracker",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "BinaryRishabh",
+      "repo": "daily-tracker"
+    }
   }
 }
