@@ -5,6 +5,8 @@ import Stopwatch from './Stopwatch';
 import History from './History';
 import Stats from './Stats';
 import './App.css';
+import ToastContainer, { showToast } from './components/Toast';
+
 {/* Uncomment this while in development for devPanel */}
 // import DevPanel from './components/DevPanel';
 
@@ -183,6 +185,10 @@ function App() {
   }, [elapsedMs, distractions, isDistracted, distractionElapsed]);
 
   const saveSession = useCallback(async () => {
+    if (elapsedMs < 30000) {
+      showToast('Track at least 30 seconds before saving.', 'error');
+      return;
+    }
     const sessionId = uuidv4();
     
     // If currently distracted, auto-stop it before saving
@@ -216,15 +222,11 @@ function App() {
     try {
       const result = await window.electronAPI.saveSession(session);
       if (result.success) {
-        const saveBtn = document.querySelector('.btn-success');
-        if (saveBtn) {
-          saveBtn.textContent = '✅ Saved!';
-          setTimeout(() => { saveBtn.textContent = '💾 Save'; }, 1500);
-        }
+        showToast(`${session.name || 'Session'} saved!`, 'success');
         resetStopwatch();
         setHistoryRefreshKey(prev => prev + 1);
       } else {
-        alert('Failed to save session: ' + result.error);
+        showToast('Failed to save: ' + result.error, 'error');
       }
     } catch (error) {
       console.error('Save error:', error);
@@ -297,7 +299,7 @@ function App() {
           <Route path="/stats" element={<Stats />} />
         </Routes>
       </main>
-
+      <ToastContainer />
       {/* Uncomment this while in development for devPanel */}
       {/* {import.meta.env.DEV && (
         <DevPanel onSessionsChanged={() => setHistoryRefreshKey(prev => prev + 1)} />

@@ -112,7 +112,7 @@ function Stopwatch({
         </button>
         <button className="btn btn-secondary" onClick={() => addLap(false)} disabled={!isRunning}>🏁 Lap</button>
         <button className="btn btn-danger" onClick={resetStopwatch} disabled={elapsedMs === 0 && laps.length === 0}>↺ Reset</button>
-        <button className="btn btn-success" onClick={saveSession} disabled={elapsedMs === 0 && laps.length === 0}>💾 Save</button>
+                <button className="btn btn-success" onClick={saveSession} disabled={elapsedMs < 30000 && laps.length === 0}>💾 Save</button>
       </div>
 
       {/* Note */}
