@@ -5,7 +5,8 @@ import Stopwatch from './Stopwatch';
 import History from './History';
 import Stats from './Stats';
 import './App.css';
-import DevPanel from './components/DevPanel';
+{/* Uncomment this while in development for devPanel */}
+// import DevPanel from './components/DevPanel';
 
 // Helper: returns ISO string in local time (not UTC)
 function getLocalISOString() {
@@ -296,9 +297,11 @@ function App() {
           <Route path="/stats" element={<Stats />} />
         </Routes>
       </main>
-      {import.meta.env.DEV && (
+
+      {/* Uncomment this while in development for devPanel */}
+      {/* {import.meta.env.DEV && (
         <DevPanel onSessionsChanged={() => setHistoryRefreshKey(prev => prev + 1)} />
-      )}
+      )} */}
     </div>
   );
 }
