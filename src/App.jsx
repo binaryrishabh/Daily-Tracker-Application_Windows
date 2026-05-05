@@ -296,7 +296,9 @@ function App() {
           <Route path="/stats" element={<Stats />} />
         </Routes>
       </main>
-      <DevPanel onSessionsChanged={() => setHistoryRefreshKey(prev => prev + 1)} />
+      {import.meta.env.DEV && (
+        <DevPanel onSessionsChanged={() => setHistoryRefreshKey(prev => prev + 1)} />
+      )}
     </div>
   );
 }

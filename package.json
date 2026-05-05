@@ -16,6 +16,7 @@
   "dependencies": {
     "electron": "^41.5.0",
     "electron-builder": "^26.8.1",
+    "electron-updater": "^6.8.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.3",
@@ -52,7 +53,7 @@
     "publish": {
       "provider": "github",
       "owner": "BinaryRishabh",
-      "repo": "daily-tracker"
+      "repo": "Daily-Tracker-Application_Windows"
     }
   }
 }

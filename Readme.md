@@ -40,13 +40,6 @@ A beautiful, keyboard-driven desktop productivity tracker with stopwatch, distra
 - Productive ratio bar
 - Tooltips (`?` icons) explain every metric
 
-### 🛠 Dev Panel
-- Press `Ctrl+Shift+D` to open
-- Generate test data for any number of past days
-- Clear all sessions
-- View database contents at a glance
-- Perfect for testing streaks, archives, and analytics
-
 ### 🖥 System Tray
 - Minimize to tray — app keeps running in background
 - Tray menu: Start/Stop, Add Lap, Show Window, Quit
@@ -56,15 +49,14 @@ A beautiful, keyboard-driven desktop productivity tracker with stopwatch, distra
 
 ## Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `Space` | Start / Stop stopwatch |
-| `L` | Add lap |
-| `F` | Add flagged lap |
-| `D` | Start / Stop distraction timer |
-| `Ctrl+S` | Save session |
-| `Ctrl+R` | Reset stopwatch |
-| `Ctrl+Shift+D` | Toggle Dev Panel |
+| Key      | Action                         |
+|----------|--------------------------------|
+| `Space`  | Start / Stop stopwatch         |
+| `L`      | Add lap                        |
+| `F`      | Add flagged lap                |
+| `D`      | Start / Stop distraction timer |
+| `Ctrl+S` | Save session                   |
+| `Ctrl+R` | Reset stopwatch                |
 
 ---
 

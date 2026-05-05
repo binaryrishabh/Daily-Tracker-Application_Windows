@@ -1,6 +1,7 @@
 const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
 
 let mainWindow = null;
 let tray = null;
@@ -295,6 +296,12 @@ app.whenReady().then(async () => {
   setupIpcHandlers();
   createWindow();
   createTray();
+  
+  // Check for updates (every 3 hours)
+  autoUpdater.checkForUpdatesAndNotify();
+  setInterval(() => {
+    autoUpdater.checkForUpdatesAndNotify();
+  }, 3 * 60 * 60 * 1000);
   
   // Global shortcuts removed for L and F — they work in-app only.
   // Keeps Space free for system use. Tray menu still has Lap/Flag.
