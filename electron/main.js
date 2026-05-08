@@ -7,13 +7,16 @@ let mainWindow = null;
 let tray = null;
 let db = null;
 let SQL = null;
-let isRunning = false; // Track stopwatch state for tray
+let isRunning = false;
 
 // ===== Database Setup =====
 async function initDatabase() {
   SQL = await require('sql.js')();
   
-  const dbPath = path.join(app.getPath('userData'), 'daily-tracker.db');
+  const isDev = process.env.NODE_ENV !== 'production' || !app.isPackaged;
+  const dbName = isDev ? 'daily-tracker-dev.db' : 'daily-tracker.db';
+  const dbPath = path.join(app.getPath('userData'), dbName);
+
   console.log('Database path:', dbPath);
   
   if (fs.existsSync(dbPath)) {
@@ -75,7 +78,6 @@ function saveDatabase() {
 
 // ===== Tray Setup =====
 function createTray() {
-  // Create a simple 16x16 icon programmatically (green dot)
   const { nativeImage } = require('electron');
   const icon = nativeImage.createEmpty();
   tray = new Tray(icon.resize({ width: 16, height: 16 }));
@@ -123,6 +125,7 @@ function updateTrayMenu() {
     { 
       label: 'Quit', 
       click: () => {
+        app.isQuitting = true;
         app.quit();
       }
     }
@@ -132,7 +135,7 @@ function updateTrayMenu() {
 
 // ===== Database IPC Handlers =====
 function setupIpcHandlers() {
-    ipcMain.handle('db:save-session', (event, session) => {
+  ipcMain.handle('db:save-session', (event, session) => {
     try {
       db.run('DELETE FROM laps WHERE session_id = ?', [session.id]);
       db.run('DELETE FROM distractions WHERE session_id = ?', [session.id]);
@@ -184,7 +187,7 @@ function setupIpcHandlers() {
         const s = stmt.getAsObject();
         const session = { ...s, totalMs: s.total_ms, laps: [] };
         
-                let lstmt = db.prepare('SELECT * FROM laps WHERE session_id = ? ORDER BY number ASC');
+        let lstmt = db.prepare('SELECT * FROM laps WHERE session_id = ? ORDER BY number ASC');
         lstmt.bind([session.id]);
         while (lstmt.step()) {
           const l = lstmt.getAsObject();
@@ -218,6 +221,7 @@ function setupIpcHandlers() {
   ipcMain.handle('db:delete-session', (event, id) => {
     try {
       db.run('DELETE FROM laps WHERE session_id = ?', [id]);
+      db.run('DELETE FROM distractions WHERE session_id = ?', [id]);
       db.run('DELETE FROM sessions WHERE id = ?', [id]);
       saveDatabase();
       return { success: true };
@@ -247,24 +251,38 @@ function setupIpcHandlers() {
     isRunning = running;
     updateTrayMenu();
   });
+
+  // Check if stopwatch is running (for close confirmation)
+  ipcMain.handle('get-is-running', () => {
+    return isRunning;
+  });
+
+  // Handle quit request from renderer after confirmation
+  ipcMain.handle('confirm-quit', () => {
+    app.isQuitting = true;
+    app.quit();
+  });
 }
 
 // ===== Window Creation =====
 function createWindow() {
-  mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 900,
     minHeight: 600,
     title: 'Daily Tracker',
+    show: false,
     backgroundColor: '#0f0f0f',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
-    show: false,
   });
+
+  // Launch maximized
+  mainWindow.maximize();
 
   const isDev = process.env.NODE_ENV !== 'production';
   if (isDev) {
@@ -277,11 +295,11 @@ function createWindow() {
     mainWindow.show();
   });
 
-  // Minimize to tray instead of closing
+  // Close behavior: ask renderer if stopwatch is running
   mainWindow.on('close', (event) => {
     if (!app.isQuitting) {
       event.preventDefault();
-      mainWindow.hide();
+      mainWindow.webContents.send('before-close');
     }
   });
 
@@ -297,14 +315,10 @@ app.whenReady().then(async () => {
   createWindow();
   createTray();
   
-  // Check for updates (every 3 hours)
   autoUpdater.checkForUpdatesAndNotify();
   setInterval(() => {
     autoUpdater.checkForUpdatesAndNotify();
   }, 3 * 60 * 60 * 1000);
-  
-  // Global shortcuts removed for L and F — they work in-app only.
-  // Keeps Space free for system use. Tray menu still has Lap/Flag.
 });
 
 app.on('before-quit', () => {
@@ -314,7 +328,7 @@ app.on('before-quit', () => {
 });
 
 app.on('window-all-closed', () => {
-  // Don't quit on window close — keep running in tray
+  // Don't quit on window close — dialog or tray handles it
 });
 
 app.on('activate', () => {

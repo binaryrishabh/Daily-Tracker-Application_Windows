@@ -37,6 +37,7 @@ function App() {
   const [distractionElapsed, setDistractionElapsed] = useState(0);
   const [distractions, setDistractions] = useState([]);
   const [currentDistractionName, setCurrentDistractionName] = useState('');
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   const startTimeRef = useRef(null);
   const accumulatedRef = useRef(0);
@@ -47,6 +48,41 @@ function App() {
   const distractionAccumulatedRef = useRef(0);
   const distractionFrameRef = useRef(null);
   const currentDistractionStartMs = useRef(0);
+
+  const elapsedMsRef = useRef(0);
+  const isRunningRefForClose = useRef(false);
+
+  // Handle close confirmation
+  useEffect(() => {
+    elapsedMsRef.current = elapsedMs;
+  }, [elapsedMs]);
+
+  useEffect(() => {
+    isRunningRefForClose.current = isRunning;
+  }, [isRunning]);
+
+    // Handle close confirmation
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.onBeforeClose(async () => {
+        // Use refs to get current values, not stale closure values
+        const running = isRunningRefForClose.current;
+        const time = elapsedMsRef.current;
+        
+        if (running || time > 0) {
+          setShowCloseDialog(true);
+        } else {
+          window.electronAPI.confirmQuit();
+        }
+      });
+    }
+
+    return () => {
+      if (window.electronAPI) {
+        window.electronAPI.removeBeforeCloseListener();
+      }
+    };
+  }, []); // Empty dependency array — refs give us fresh values
 
   useEffect(() => { isRunningRef.current = isRunning; }, [isRunning]);
 
@@ -234,6 +270,8 @@ function App() {
     }
   }, [sessionName, sessionStart, elapsedMs, laps, currentNote, distractions, isDistracted, currentDistractionName, distractionAccumulatedRef, resetStopwatch]);
 
+
+
   useEffect(() => {
     if (window.electronAPI) {
       window.electronAPI.onGlobalShortcut((key) => {
@@ -300,6 +338,98 @@ function App() {
         </Routes>
       </main>
       <ToastContainer />
+      {/* Close Confirmation Dialog */}
+            {/* Close Confirmation Dialog */}
+      {showCloseDialog && (
+        <div className="dialog-overlay" onClick={() => setShowCloseDialog(false)}>
+          <div className="dialog-box" onClick={(e) => e.stopPropagation()}>
+            <div className="dialog-icon">⚠️</div>
+            <h2 className="dialog-title">Stopwatch is running</h2>
+            <p className="dialog-message">
+              You have an active session with tracked time. What would you like to do?
+            </p>
+
+            {/* Minimum 30s warning */}
+            {elapsedMs < 30000 && (
+              <div className="dialog-warning">
+                ⏱ Session is less than 30 seconds — Save & Quit is disabled.
+              </div>
+            )}
+
+            <div className="dialog-actions">
+              <button
+                className={`btn dialog-btn-save ${elapsedMs < 30000 ? 'disabled' : ''}`}
+                disabled={elapsedMs < 30000}
+                title={elapsedMs < 30000 ? 'Track at least 30 seconds before saving' : ''}
+                onClick={async () => {
+                  if (elapsedMs < 30000) return;
+                  
+                  setShowCloseDialog(false);
+                  
+                  let finalDistractions = [...distractions];
+                  if (isDistracted) {
+                    const totalMs = distractionAccumulatedRef.current + (performance.now() - distractionStartRef.current);
+                    finalDistractions = [...distractions, {
+                      id: uuidv4(),
+                      name: currentDistractionName || 'Distraction',
+                      startMs: currentDistractionStartMs.current,
+                      durationMs: Math.round(totalMs),
+                      note: '',
+                      timestamp: new Date().toISOString(),
+                    }];
+                  }
+
+                  const totalDistractedMs = finalDistractions.reduce((sum, d) => sum + d.durationMs, 0);
+                  const productiveMs = Math.max(0, elapsedMs - totalDistractedMs);
+
+                  const session = {
+                    id: uuidv4(),
+                    name: sessionName || 'Untitled Session',
+                    date: sessionStart || getLocalISOString(),
+                    totalMs: Math.round(productiveMs),
+                    laps: laps.map(lap => ({ ...lap })),
+                    note: currentNote,
+                    distractions: finalDistractions,
+                    createdAt: new Date().toISOString(),
+                  };
+
+                  try {
+                    const result = await window.electronAPI.saveSession(session);
+                    if (result.success) {
+                      console.log('Session saved on quit:', session.name);
+                    } else {
+                      console.error('Save on quit failed:', result.error);
+                    }
+                  } catch (e) {
+                    console.error('Save on quit error:', e);
+                  }
+                  
+                  setTimeout(() => {
+                    window.electronAPI.confirmQuit();
+                  }, 200);
+                }}
+              >
+                💾 Save & Quit
+              </button>
+              <button
+                className="btn dialog-btn-discard"
+                onClick={() => {
+                  setShowCloseDialog(false);
+                  window.electronAPI.confirmQuit();
+                }}
+              >
+                🗑 Don't Save
+              </button>
+              <button
+                className="btn dialog-btn-cancel"
+                onClick={() => setShowCloseDialog(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Uncomment this while in development for devPanel */}
       {/* {import.meta.env.DEV && (
         <DevPanel onSessionsChanged={() => setHistoryRefreshKey(prev => prev + 1)} />

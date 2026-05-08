@@ -20,4 +20,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Tray state
   updateRunningState: (running) => ipcRenderer.invoke('update-running-state', running),
+
+  // Close confirmation
+  onBeforeClose: (callback) => {
+    ipcRenderer.on('before-close', () => callback());
+  },
+
+  removeBeforeCloseListener: () => {
+    ipcRenderer.removeAllListeners('before-close');
+  },
+
+  confirmQuit: () => {
+    return ipcRenderer.invoke('confirm-quit');
+  },
+
+  getIsRunning: () => {
+    return ipcRenderer.invoke('get-is-running');
+  },
 });
