@@ -16,7 +16,7 @@ async function initDatabase() {
   const isDev = process.env.NODE_ENV !== 'production' || !app.isPackaged;
   const dbName = isDev ? 'daily-tracker-dev.db' : 'daily-tracker.db';
   const dbPath = path.join(app.getPath('userData'), dbName);
-
+  
   console.log('Database path:', dbPath);
   
   if (fs.existsSync(dbPath)) {
