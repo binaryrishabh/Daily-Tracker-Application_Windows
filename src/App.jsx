@@ -8,7 +8,7 @@ import './App.css';
 import ToastContainer, { showToast } from './components/Toast';
 
 {/* Uncomment this while in development for devPanel */}
-// import DevPanel from './components/DevPanel';
+import DevPanel from './components/DevPanel';
 
 // Helper: returns ISO string in local time (not UTC)
 function getLocalISOString() {
@@ -431,9 +431,9 @@ function App() {
         </div>
       )}
       {/* Uncomment this while in development for devPanel */}
-      {/* {import.meta.env.DEV && (
+      {import.meta.env.DEV && (
         <DevPanel onSessionsChanged={() => setHistoryRefreshKey(prev => prev + 1)} />
-      )} */}
+      )}
     </div>
   );
 }

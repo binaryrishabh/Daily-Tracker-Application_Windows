@@ -7,3 +7,4 @@ debug-db.js
 fix-dates.js
 update-db.js
 package-lock.json
+diagonoseDB.js

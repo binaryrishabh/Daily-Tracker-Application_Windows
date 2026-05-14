@@ -9,13 +9,13 @@ let db = null;
 let SQL = null;
 let isRunning = false;
 
-// ===== Database Setup =====
 async function initDatabase() {
   SQL = await require('sql.js')();
   
-  const isDev = process.env.NODE_ENV !== 'production' || !app.isPackaged;
-  const dbName = isDev ? 'daily-tracker-dev.db' : 'daily-tracker.db';
-  const dbPath = path.join(app.getPath('userData'), dbName);
+  // ===== SINGLE DATABASE — NO SPLIT =====
+  // Both dev and production use the exact same database file.
+  // This prevents data loss when switching between modes or rebuilding.
+  const dbPath = getDbPath();
   
   console.log('Database path:', dbPath);
   
@@ -26,6 +26,7 @@ async function initDatabase() {
     db = new SQL.Database();
   }
   
+  // Always ensure tables exist (safe to call even if they already exist)
   db.run('PRAGMA foreign_keys = ON');
   
   db.run(`
@@ -66,12 +67,36 @@ async function initDatabase() {
   `);
   
   saveDatabase();
-  console.log('Database ready');
+  console.log('Database ready with', countSessions(), 'sessions');
+}
+
+// Helper: count sessions for logging
+function countSessions() {
+  try {
+    const stmt = db.prepare('SELECT COUNT(*) as c FROM sessions');
+    stmt.step();
+    const count = stmt.getAsObject().c;
+    stmt.free();
+    return count;
+  } catch (e) {
+    return '?';
+  }
+}
+
+// Single source of truth for database path
+function getDbPath() {
+  if (app.isPackaged) {
+    // Production: installed .exe — uses the real database
+    return path.join(app.getPath('userData'), 'daily-tracker.db');
+  } else {
+    // Development: npm run dev — uses a separate test database
+    return path.join(app.getPath('userData'), 'daily-tracker-dev.db');
+  }
 }
 
 function saveDatabase() {
   if (!db) return;
-  const dbPath = path.join(app.getPath('userData'), 'daily-tracker.db');
+  const dbPath = getDbPath();
   const data = db.export();
   fs.writeFileSync(dbPath, Buffer.from(data));
 }
@@ -266,7 +291,7 @@ function setupIpcHandlers() {
 
 // ===== Window Creation =====
 function createWindow() {
-    mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 900,
@@ -281,10 +306,16 @@ function createWindow() {
     },
   });
 
+  // Open DevTools only in development (npm run dev)
+  // Never opens in production (installed .exe)
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
+  }
+
   // Launch maximized
   mainWindow.maximize();
 
-  const isDev = process.env.NODE_ENV !== 'production';
+  const isDev = !app.isPackaged;
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
   } else {
