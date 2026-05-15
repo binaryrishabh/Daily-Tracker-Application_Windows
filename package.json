@@ -1,6 +1,6 @@
 {
   "name": "daily-tracker",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Personal daily tracker with stopwatch",
   "main": "electron/main.js",
   "scripts": {

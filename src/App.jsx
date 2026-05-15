@@ -5,7 +5,8 @@ import Stopwatch from './Stopwatch';
 import History from './History';
 import Stats from './Stats';
 import './App.css';
-import ToastContainer, { showToast } from './components/Toast';
+import ToastContainer from './components/Toast';
+import { showToast } from './components/Toast';
 
 {/* Uncomment this while in development for devPanel */}
 import DevPanel from './components/DevPanel';
@@ -30,7 +31,7 @@ function App() {
   const [currentNote, setCurrentNote] = useState('');
   const [sessionStart, setSessionStart] = useState(null);
   const [sessionName, setSessionName] = useState('');
-    const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   // Distraction state
   const [isDistracted, setIsDistracted] = useState(false);
@@ -51,6 +52,27 @@ function App() {
 
   const elapsedMsRef = useRef(0);
   const isRunningRefForClose = useRef(false);
+
+  useEffect(() => {
+    const realElapsed = startTimeRef.current 
+      ? accumulatedRef.current + (performance.now() - startTimeRef.current)
+      : accumulatedRef.current;
+    
+    const realDistractionElapsed = distractionStartRef.current
+      ? distractionAccumulatedRef.current + (performance.now() - distractionStartRef.current)
+      : distractionAccumulatedRef.current;
+    
+    if (window.electronAPI) {
+      window.electronAPI.updateRunningState(
+        isRunning, 
+        Math.round(realElapsed), 
+        isDistracted, 
+        currentDistractionName,
+        Math.round(realDistractionElapsed)
+      );
+    }
+  }, [isRunning, elapsedMs, isDistracted, distractionElapsed]);
+
 
   // Handle close confirmation
   useEffect(() => {
@@ -136,14 +158,16 @@ function App() {
     }
   }, [isDistracted, isRunning, elapsedMs, updateDistractionDisplay]);
 
-  const stopDistraction = useCallback(() => {
+  const stopDistraction = useCallback((distractionNameOverride) => {
     if (isDistracted) {
       distractionAccumulatedRef.current += performance.now() - distractionStartRef.current;
       const totalDistractionMs = distractionAccumulatedRef.current;
       
+      const nameToUse = distractionNameOverride || currentDistractionName || 'Distraction';
+      
       const newDistraction = {
         id: uuidv4(),
-        name: currentDistractionName || 'Distraction',
+        name: nameToUse,
         startMs: currentDistractionStartMs.current,
         durationMs: Math.round(totalDistractionMs),
         note: '',
@@ -160,10 +184,28 @@ function App() {
     }
   }, [isDistracted, currentDistractionName, elapsedMs, updateDistractionDisplay]);
 
-  const toggleDistraction = useCallback(() => {
-    if (isDistracted) stopDistraction();
+  const toggleDistraction = useCallback((distractionNameOverride) => {
+    if (isDistracted) stopDistraction(distractionNameOverride);
     else startDistraction();
   }, [isDistracted, startDistraction, stopDistraction]);
+
+
+  // Listen for distraction stop with name from mini window
+  useEffect(() => {
+    const handleDistractionStopWithName = (name) => {
+      toggleDistraction(name);
+    };
+
+    if (window.electronAPI) {
+      window.electronAPI.onDistractionStopWithName(handleDistractionStopWithName);
+    }
+
+    return () => {
+      if (window.electronAPI) {
+        window.electronAPI.removeDistractionStopWithNameListener();
+      }
+    };
+  }, [toggleDistraction]);
 
   const addLap = useCallback((flagged = false) => {
     const lapTime = startTimeRef.current
@@ -221,7 +263,12 @@ function App() {
   }, [elapsedMs, distractions, isDistracted, distractionElapsed]);
 
   const saveSession = useCallback(async () => {
-    if (elapsedMs < 30000) {
+    // Use real elapsed time from refs (not React state)
+    const realElapsed = startTimeRef.current
+      ? accumulatedRef.current + (performance.now() - startTimeRef.current)
+      : accumulatedRef.current;
+    
+    if (realElapsed < 30000) {
       showToast('Track at least 30 seconds before saving.', 'error');
       return;
     }
@@ -242,7 +289,7 @@ function App() {
     }
 
     const totalDistractedMs = finalDistractions.reduce((sum, d) => sum + d.durationMs, 0);
-    const productiveMs = Math.max(0, elapsedMs - totalDistractedMs);
+    const productiveMs = Math.max(0, realElapsed - totalDistractedMs);
 
     const session = {
       id: sessionId,
@@ -261,6 +308,13 @@ function App() {
         showToast(`${session.name || 'Session'} saved!`, 'success');
         resetStopwatch();
         setHistoryRefreshKey(prev => prev + 1);
+        
+        // Force-send reset state to mini window
+        setTimeout(() => {
+          if (window.electronAPI) {
+            window.electronAPI.updateRunningState(false, 0, false, '');
+          }
+        }, 100);
       } else {
         showToast('Failed to save: ' + result.error, 'error');
       }
@@ -280,16 +334,47 @@ function App() {
           case 'l': if (isRunningRef.current) addLap(false); break;
           case 'f': if (isRunningRef.current) addLap(true); break;
           case 'd': toggleDistraction(); break;
+          case 'ctrl+r': resetStopwatch(); break;
+          case 'ctrl+s': saveSession(); break;
           default: break;
         }
       });
     }
     return () => { if (window.electronAPI) window.electronAPI.removeGlobalShortcutListener(); };
-  }, [toggleStopwatch, addLap, toggleDistraction]);
+  }, [toggleStopwatch, addLap, toggleDistraction, resetStopwatch, saveSession]);
 
+  // Respond to mini window's request for current stopwatch state
   useEffect(() => {
-    if (window.electronAPI) window.electronAPI.updateRunningState(isRunning);
-  }, [isRunning]);
+    const handleStateRequest = () => {
+      const realElapsed = startTimeRef.current 
+        ? accumulatedRef.current + (performance.now() - startTimeRef.current)
+        : accumulatedRef.current;
+      
+      const realDistractionElapsed = distractionStartRef.current
+        ? distractionAccumulatedRef.current + (performance.now() - distractionStartRef.current)
+        : distractionAccumulatedRef.current;
+      
+      if (window.electronAPI) {
+        window.electronAPI.updateRunningState(
+          isRunning, 
+          Math.round(realElapsed), 
+          isDistracted, 
+          currentDistractionName,
+          Math.round(realDistractionElapsed)
+        );
+      }
+    };
+
+    if (window.electronAPI) {
+      window.electronAPI.onGetStopwatchState(handleStateRequest);
+    }
+
+    return () => {
+      if (window.electronAPI) {
+        window.electronAPI.removeGetStopwatchStateListener();
+      }
+    };
+  }, [isRunning, elapsedMs]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -307,6 +392,40 @@ function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleStopwatch, addLap, resetStopwatch, saveSession, toggleDistraction]);
+
+  // Listen for elapsed time sync from mini window
+  useEffect(() => {
+    const handleSyncElapsed = (syncedMs) => {
+      
+      // Cancel any existing animation loop
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      
+      // Update the main window's accumulated ref to match mini window
+      accumulatedRef.current = syncedMs;
+      startTimeRef.current = null; // Don't continue from mini's startTime
+      setElapsedMs(syncedMs);
+      
+      // If the mini window was running, auto-start the main window's timer
+      // But use a fresh startTime to avoid double-counting
+      if (isRunningRef.current) {
+        startTimeRef.current = performance.now();
+        animationFrameRef.current = requestAnimationFrame(updateDisplay);
+      }
+    };
+
+    if (window.electronAPI) {
+      window.electronAPI.onSyncElapsedFromMini(handleSyncElapsed);
+    }
+
+    return () => {
+      if (window.electronAPI) {
+        window.electronAPI.removeSyncElapsedFromMiniListener();
+      }
+    };
+  }, [updateDisplay]);
 
   const productiveMs = getProductiveMs();
 
@@ -396,7 +515,7 @@ function App() {
                   try {
                     const result = await window.electronAPI.saveSession(session);
                     if (result.success) {
-                      console.log('Session saved on quit:', session.name);
+                      // console.log('Session saved on quit:', session.name);
                     } else {
                       console.error('Save on quit failed:', result.error);
                     }

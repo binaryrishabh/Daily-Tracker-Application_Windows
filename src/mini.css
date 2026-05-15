@@ -1,0 +1,433 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0f0f0f;
+  color: #e0e0e0;
+  overflow: hidden;
+  user-select: none;
+}
+
+#mini-root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.mini-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0f0f0f;
+  transition: background 0.3s ease;
+}
+
+/* ===== Draggable Header ===== */
+.mini-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #252525;
+  -webkit-app-region: drag;
+  cursor: grab;
+}
+
+.mini-header:active {
+  cursor: grabbing;
+}
+
+.mini-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: #888;
+  letter-spacing: 0.5px;
+}
+
+/* ===== Header Action Buttons (Circular) ===== */
+.mini-header-actions {
+  display: flex;
+  gap: 6px;
+  -webkit-app-region: no-drag;
+}
+
+.mini-btn-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  color: #888;
+  background: transparent;
+}
+
+.mini-btn-icon:hover {
+  transform: scale(1.08);
+}
+
+
+/* Minimize button (—) */
+.mini-btn-minimize {
+  color: #888;
+}
+.mini-btn-minimize:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ccc;
+}
+
+/* Restore button (⛶) */
+.mini-btn-restore-icon {
+  color: #888;
+  font-size: 14px;
+}
+.mini-btn-restore-icon:hover {
+  background: rgba(100, 181, 246, 0.15);
+  color: #64b5f6;
+}
+
+/* Close button (✕) */
+.mini-btn-close-icon {
+  color: #888;
+  font-size: 14px;
+}
+.mini-btn-close-icon:hover {
+  background: rgba(244, 67, 54, 0.2);
+  color: #ef5350;
+}
+
+/* Removes the orange focus */
+.mini-btn-icon:focus,
+.mini-btn-icon:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+
+/* ===== Timer Display ===== */
+.mini-timer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px;
+  background: radial-gradient(ellipse at center top, rgba(255,255,255,0.02) 0%, transparent 70%);
+}
+
+.mini-time {
+  font-size: 36px;
+  font-weight: 300;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  letter-spacing: 2px;
+  color: #ffffff;
+  transition: color 0.3s;
+}
+
+.mini-timer.running .mini-time {
+  color: #a5d6a7;
+}
+
+.mini-status {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #444;
+  transition: all 0.3s;
+}
+
+.mini-dot.active {
+  background: #4caf50;
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
+}
+
+/* ===== Bottom Controls ===== */
+.mini-controls {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #1e1e1e;
+  border-top: 1px solid rgba(30, 30, 30, 0.5);
+}
+
+.mini-btn {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+  -webkit-app-region: no-drag;
+}
+
+.mini-btn:active {
+  transform: scale(0.97);
+}
+
+.mini-btn:focus,
+.mini-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.mini-btn-toggle.start {
+  background: #1b5e20;
+  border: 1px solid #2e7d32;
+  color: #a5d6a7;
+}
+
+.mini-btn-toggle.start:hover {
+  background: #2e7d32;
+}
+
+.mini-btn-toggle.stop {
+  background: #b71c1c;
+  border: 1px solid #c62828;
+  color: #ef9a9a;
+}
+
+.mini-btn-toggle.stop:hover {
+  background: #c62828;
+}
+
+/* ===== Warning Toast ===== */
+.mini-warning {
+  margin: 0 12px;
+  padding: 8px 12px;
+  background: rgba(255, 152, 0, 0.12);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 8px;
+  font-size: 11px;
+  color: #ffcc80;
+  text-align: center;
+  animation: miniWarningIn 0.25s ease;
+}
+
+
+@keyframes miniWarningIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Save Success Toast ===== */
+.mini-save-toast {
+  margin: 0 12px;
+  padding: 8px 12px;
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  font-size: 11px;
+  color: #a5d6a7;
+  text-align: center;
+  animation: miniSaveIn 0.25s ease;
+}
+
+@keyframes miniSaveIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Distraction Input Popup ===== */
+.mini-distraction-popup {
+  margin: 0 12px 8px;
+  display: flex;
+  gap: 6px;
+  animation: miniWarningIn 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mini-distraction-input {
+  flex: 1;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: #ffcc80;
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+}
+
+.mini-distraction-input:focus {
+  border-color: #ff9800;
+}
+
+.mini-distraction-input::placeholder {
+  color: #555;
+}
+
+.mini-distraction-submit {
+  background: #e65100;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 12px;
+  color: #ffcc80;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.mini-distraction-submit:hover {
+  background: #ff6d00;
+}
+
+/* ===== Distraction Running Badge ===== */
+.mini-distracted-badge {
+  margin-top: 4px;
+  padding: 4px 10px;
+  background: rgba(255, 152, 0, 0.12);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #ffcc80;
+  letter-spacing: 0.5px;
+  animation: distractedPulse 2s ease-in-out infinite;
+}
+
+/* Dull version when timer is stopped */
+.mini-distracted-badge.paused {
+  opacity: 0.5;
+  animation: none;
+  border-color: rgba(255, 152, 0, 0.15);
+  color: #996600;
+}
+
+@keyframes distractedPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(255, 152, 0, 0.2); }
+  50% { box-shadow: 0 0 10px rgba(255, 152, 0, 0.4); }
+}
+
+.mini-distracted-badge {
+  margin-top: 4px;
+  padding: 4px 10px;
+  background: rgba(255, 152, 0, 0.12);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #ffcc80;
+  letter-spacing: 0.5px;
+  animation: distractedPulse 2s ease-in-out infinite;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+
+/* ===== Collapse/Expand Button ===== */
+.mini-btn-collapse {
+  color: #888;
+  width: 28px;
+  height: 28px;
+}
+.mini-btn-collapse:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ccc;
+}
+
+.mini-collapsed-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+.mini-collapsed-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  height: 100%;
+}
+
+.mini-collapsed-time {
+  font-size: 12px;
+  font-weight: 400;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  color: #e0e0e0;
+}
+
+.mini-collapsed-dot-mini {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ===== Unfocused Translucency ===== */
+.mini-container.unfocused .mini-header,
+.mini-container.unfocused .mini-controls,
+.mini-container.unfocused .mini-warning,
+.mini-container.unfocused .mini-save-toast,
+.mini-container.unfocused .mini-distraction-popup {
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+/* Keep these bright when unfocused */
+.mini-container.unfocused .mini-collapsed-strip {
+  opacity: 1 !important;
+}
+
+.mini-container.unfocused .mini-collapsed-strip .mini-collapsed-time,
+.mini-container.unfocused .mini-collapsed-strip .mini-collapsed-dot-mini,
+.mini-container.unfocused .mini-collapsed-strip .mini-btn-icon {
+  opacity: 1 !important;
+}
+
+.mini-container.unfocused .mini-time,
+.mini-container.unfocused .mini-collapsed-time,
+.mini-container.unfocused .mini-distracted-badge {
+  opacity: 1 !important;
+}
+
+.mini-btn-maximize {
+  color: #888;
+}
+.mini-btn-maximize:hover {
+  background: rgba(100, 181, 246, 0.15);
+  color: #64b5f6;
+}

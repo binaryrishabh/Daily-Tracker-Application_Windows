@@ -2388,3 +2388,25 @@ body {
   border-color: #333;
   color: #555;
 }
+
+.btn:focus,
+.btn:focus-visible,
+.nav-tab:focus,
+.nav-tab:focus-visible,
+.flag-btn:focus,
+.flag-btn:focus-visible,
+.btn-delete:focus,
+.btn-delete:focus-visible,
+.archive-entry-btn:focus,
+.archive-entry-btn:focus-visible,
+.back-btn:focus,
+.back-btn:focus-visible,
+.archive-month-row:focus,
+.archive-month-row:focus-visible,
+.archive-day-row:focus,
+.archive-day-row:focus-visible,
+.archive-past-year-btn:focus,
+.archive-past-year-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
