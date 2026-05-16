@@ -63,13 +63,13 @@ A beautiful, keyboard-driven desktop productivity tracker with stopwatch, distra
 ## Installation
 
 ### Download (Windows)
-Download the latest installer from [Releases](https://github.com/YOUR-USERNAME/daily-tracker/releases).
+Download the latest installer from [Releases](https://github.com/BinaryRishabh/Daily-Tracker-Application_Windows/releases).
 
 Run `Daily Tracker Setup x.x.x.exe` and follow the installer.
 
 ### Run from Source
 ```bash
-git clone https://github.com/YOUR-USERNAME/daily-tracker.git
-cd daily-tracker
+git clone https://github.com/BinaryRishabh/Daily-Tracker-Application_Windows.git
+cd Daily-Tracker-Application_Windows
 npm install
 npm run dev
