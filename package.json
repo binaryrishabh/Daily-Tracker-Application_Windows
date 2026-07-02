@@ -1,6 +1,6 @@
 {
   "name": "daily-tracker",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Personal daily tracker with stopwatch",
   "main": "electron/main.js",
   "scripts": {
@@ -31,30 +31,40 @@
     "wait-on": "^9.0.5"
   },
   "build": {
-    "appId": "com.rishabh.daily-tracker",
-    "productName": "Daily Tracker",
+    "appId": "com.DailyTracker.app",
+    "productName": "DailyTracker",
     "directories": {
       "output": "release"
     },
     "files": [
       "dist/**/*",
       "electron/**/*",
+      "build/**/*",
       "package.json"
     ],
     "win": {
       "target": "nsis",
       "forceCodeSigning": false,
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
+      "createDesktopShortcut": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     },
     "publish": {
       "provider": "github",
-      "owner": "BinaryRishabh",
+      "owner": "binaryrishabh",
       "repo": "Daily-Tracker-Application_Windows"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "build/icon.ico",
+        "to": "icon.ico"
+      }
+    ]
   }
 }

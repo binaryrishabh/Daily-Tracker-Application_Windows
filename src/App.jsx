@@ -442,7 +442,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <header className="app-header compact"><h1>Daily Tracker</h1></header>
+      <header className="app-header compact"><h1>DailyTracker</h1></header>
       <nav className="nav-tabs">
         <NavLink to="/stopwatch" className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}>⏱ Stopwatch</NavLink>
         <NavLink to="/history" className={({ isActive }) => isActive ? 'nav-tab active' : 'nav-tab'}>📋 History</NavLink>

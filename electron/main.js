@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu } = require('electron');
+const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
@@ -64,10 +64,14 @@ function saveDatabase() {
 
 // ===== TRAY =====
 function createTray() {
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.ico')
+    : path.join(__dirname, '..', 'build', 'icon.ico');
   const { nativeImage } = require('electron');
-  tray = new Tray(nativeImage.createEmpty().resize({ width: 16, height: 16 }));
+  const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
+  tray = new Tray(icon);
   updateTrayMenu();
-  tray.setToolTip('Daily Tracker');
+  tray.setToolTip('DailyTracker');
   tray.on('click', () => { if (mainWindow) { mainWindow.show(); mainWindow.focus(); } });
 }
 
@@ -138,7 +142,31 @@ function setupIpcHandlers() {
 // ===== MINI WINDOW =====
 function createMiniWindow() {
   if (miniWindow && !miniWindow.isDestroyed()) { miniWindow.focus(); return; }
-  miniWindow = new BrowserWindow({ width: 220, height: 200, minWidth: 100, minHeight: 22, maxWidth: 320, maxHeight: 350, frame: false, alwaysOnTop: true, skipTaskbar: true, resizable: true, transparent: true, backgroundColor: '#00000000', show: false, roundedCorners: true, webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false } });
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.ico')
+    : path.join(__dirname, '..', 'build', 'icon.ico');
+  miniWindow = new BrowserWindow({ 
+    width: 220, 
+    height: 200, 
+    minWidth: 100, 
+    minHeight: 22, 
+    maxWidth: 320, 
+    maxHeight: 350, 
+    frame: false, 
+    alwaysOnTop: true, 
+    skipTaskbar: true, 
+    resizable: true, 
+    transparent: true, 
+    backgroundColor: '#00000000', 
+    show: false, 
+    roundedCorners: true,
+    icon: iconPath,
+    webPreferences: { 
+      preload: path.join(__dirname, 'preload.js'), 
+      contextIsolation: true, 
+      nodeIntegration: false 
+    } 
+  });
   const isDev = !app.isPackaged;
   isDev ? miniWindow.loadURL('http://localhost:5173/mini.html') : miniWindow.loadFile(path.join(__dirname, '..', 'dist', 'mini.html'));
   miniWindow.once('ready-to-show', () => {
@@ -154,7 +182,25 @@ function createMiniWindow() {
 
 // ===== MAIN WINDOW =====
 function createWindow() {
-  mainWindow = new BrowserWindow({ width: 1200, height: 800, minWidth: 900, minHeight: 600, title: 'Daily Tracker', show: false, backgroundColor: '#0f0f0f', webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false } });
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.ico')
+    : path.join(__dirname, '..', 'build', 'icon.ico');
+  
+  mainWindow = new BrowserWindow({
+    width: 1200, 
+    height: 800,
+    minWidth: 900,
+    minHeight: 600,
+    title: 'DailyTracker',
+    show: false,
+    backgroundColor: '#0f0f0f',
+    icon: iconPath,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
   mainWindow.maximize();
   const isDev = !app.isPackaged;
   isDev ? mainWindow.loadURL('http://localhost:5173') : mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
@@ -167,6 +213,19 @@ function createWindow() {
 
 // ===== APP LIFECYCLE =====
 app.whenReady().then(async () => {
+  // Set Windows app icon
+  if (process.platform === 'win32') {
+    const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.ico')
+    : path.join(__dirname, '..', 'build', 'icon.ico');
+    app.setAppUserModelId('com.DailyTracker.desktop');
+    // This helps Windows pick up the icon
+    const icon = nativeImage.createFromPath(iconPath);
+    if (!icon.isEmpty()) {
+      app.dock && app.dock.setIcon(icon); // macOS only, safe to call
+    }
+  }
+  
   await initDatabase();
   setupIpcHandlers();
   createWindow();

@@ -360,7 +360,7 @@ function MiniStopwatch() {
       {/* Draggable header — hidden when collapsed */}
       {!collapsed && (
         <div className="mini-header">
-          <span className="mini-title">⏱ Daily Tracker</span>
+          <span className="mini-title">⏱ DailyTracker</span>
           <div className="mini-header-actions">
             <button className="mini-btn-icon mini-btn-collapse" onClick={() => setCollapsed(true)} title="Collapse (↓)">
               <svg width="10" height="6" viewBox="0 0 10 6">
