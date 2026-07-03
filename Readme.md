@@ -3,6 +3,8 @@
 A beautiful, keyboard-driven desktop productivity tracker with stopwatch, distraction monitoring, rich analytics, and a powerful archive system. Built for deep workers who want to understand where their time goes.
 
 ---
+Demo for the app
+https://github.com/user-attachments/assets/8f6cb8f6-acc0-4854-88e1-a80062ebe2cb
 
 ## Features
 
