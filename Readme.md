@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/3f590594-296f-49e4-a3c7-177d0bc1fcdc
+
 # Daily Tracker
 
 A beautiful, keyboard-driven desktop productivity tracker with stopwatch, distraction monitoring, rich analytics, and a powerful archive system. Built for deep workers who want to understand where their time goes.
