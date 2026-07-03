@@ -4,7 +4,7 @@ A beautiful, keyboard-driven desktop productivity tracker with stopwatch, distra
 
 ---
 Demo for the app
-https://github.com/user-attachments/assets/8f6cb8f6-acc0-4854-88e1-a80062ebe2cb
+![Demo Video](https://github.com/user-attachments/assets/8f6cb8f6-acc0-4854-88e1-a80062ebe2cb)
 
 ## Features
 
